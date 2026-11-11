@@ -112,7 +112,8 @@ Wrapping a plain (non-errstack) error captures a new stack at the wrap site.
 | `Trace` | Structured `StackTrace` clone |
 | `Stack` / `ErrorWithStack` | Package-level text helpers |
 | `Is` / `As` | Standard comparison helpers |
-| `Must` | Panic with full text when err != nil |
+| `Must` | Panic with the original error value (identity preserved for `recover`) |
+| `CodeOf` | First non-empty code in the unwrap chain |
 | `Error` | Structured error (`Code`, `Message`, `StackTrace`) |
 | `Frame` / `StackTrace` | Structured stack model |
 | `(*Error).FormatStackTrace` | Stack text only |
@@ -127,6 +128,9 @@ Wrapping a plain (non-errstack) error captures a new stack at the wrap site.
 - Formatting and JSON serialization never re-capture stacks.
 - Internal `onyx-errors` frames are filtered from captured traces.
 - Zero external dependencies (standard library only).
+- `Must` panics with the original `error` value (not a formatted string) so
+  `recover` can use `errors.As` / `errors.Is`.
+- Wrapping preserves the original non-empty `Code` found in the cause chain.
 
 ## Dependencies
 

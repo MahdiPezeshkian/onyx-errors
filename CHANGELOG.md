@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `Must` panics with the original error value so identity survives `recover`.
+- Wrapping preserves the original non-empty code across nested / non-errstack wrappers (`CodeOf`).
+
 ### Added
 
 - Structured `Error` type with `Code`, `Message`, and `StackTrace`.
