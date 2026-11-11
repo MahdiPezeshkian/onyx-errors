@@ -85,12 +85,10 @@ func wrap(err error, message string, skip int) *Error {
 	e := &Error{
 		Message: message,
 		cause:   err,
+		Code:    codeOf(err),
 	}
 	if st := stackOf(err); len(st) > 0 {
 		e.StackTrace = st.Clone()
-		if ce, ok := err.(*Error); ok {
-			e.Code = ce.Code
-		}
 	} else {
 		e.StackTrace = captureStack(skip + 1)
 	}
@@ -156,11 +154,33 @@ func As(err error, target interface{}) bool {
 	return errors.As(err, target)
 }
 
-// Must panics with a full text formatting when err is non-nil.
+// Must panics with the original err value when non-nil so recover can inspect
+// the error with errors.As / errors.Is. It does not convert the error to a
+// string, which would destroy error identity.
 func Must(err error) {
 	if err != nil {
-		panic(ErrorWithStack(err))
+		panic(err)
 	}
+}
+
+// CodeOf returns the first non-empty error code found by walking err's unwrap
+// chain. Wrapping preserves that original code on new errstack layers.
+func CodeOf(err error) string {
+	return codeOf(err)
+}
+
+func codeOf(err error) string {
+	for err != nil {
+		if e, ok := err.(*Error); ok && e.Code != "" {
+			return e.Code
+		}
+		u, ok := err.(interface{ Unwrap() error })
+		if !ok {
+			return ""
+		}
+		err = u.Unwrap()
+	}
+	return ""
 }
 
 func stackOf(err error) StackTrace {
